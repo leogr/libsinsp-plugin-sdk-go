@@ -4,24 +4,25 @@ package main
 #include <stdlib.h>
 #include <stdint.h>
 
+typedef void (*pfnWait)(void *waitCtx);
+
 typedef struct async_extractor_info
 {
-    volatile int32_t lock;
-    uint64_t evtnum;
-    uint32_t id;
-    char *arg;
-    char *data;
-    uint32_t datalen;
-    uint32_t field_present;
-	char *res;
+	uint64_t evtnum;
+	uint32_t id;
+	char* arg;
+	char* data;
+	uint32_t datalen;
+	uint32_t field_present;
+	char* res;
+	pfnWait wait;
+	void *waitCtx;
 } async_extractor_info;
 */
 import "C"
 import (
 	"encoding/json"
 	"log"
-	"runtime"
-	"sync/atomic"
 	"unsafe"
 
 	"github.com/leogr/libsinsp-plugin-sdk-go/pkg/sinsp"
@@ -118,24 +119,9 @@ func plugin_extract_str(evtnum uint64, id uint32, arg *C.char, data *C.char, dat
 func plugin_register_async_extractor(info *C.async_extractor_info) int32 {
 	log.Printf("[%s] plugin_register_async_extractor\n", PluginName)
 	go func() {
-		var glock *int32 = (*int32)(&(info.lock))
 		for {
-
-			if atomic.CompareAndSwapInt32(glock,
-				1,   // old
-				2) { // new
-				//
-				//
-				//
-				//log.Printf("[%s] async call\n", PluginName)
-				(*info).res = plugin_extract_str(uint64(info.evtnum), uint32(info.id), info.arg, info.data, uint32(info.datalen))
-
-				atomic.StoreInt32(glock, 3)
-			} else {
-				runtime.Gosched()
-			}
-
-			// fixme(leogr): wasted cpu cycles here
+			sinsp.Wait(unsafe.Pointer(info))
+			(*info).res = plugin_extract_str(uint64(info.evtnum), uint32(info.id), info.arg, info.data, uint32(info.datalen))
 		}
 	}()
 
