@@ -3,8 +3,9 @@ package main
 /*
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 
-typedef void (*pfnWait)(void *waitCtx);
+typedef bool (*pfnWait)(void *waitCtx);
 
 typedef struct async_extractor_info
 {
@@ -119,12 +120,10 @@ func plugin_extract_str(evtnum uint64, id uint32, arg *C.char, data *C.char, dat
 func plugin_register_async_extractor(info *C.async_extractor_info) int32 {
 	log.Printf("[%s] plugin_register_async_extractor\n", PluginName)
 	go func() {
-		for {
-			sinsp.Wait(unsafe.Pointer(info))
+		for sinsp.Wait(unsafe.Pointer(info)) {
 			(*info).res = plugin_extract_str(uint64(info.evtnum), uint32(info.id), info.arg, info.data, uint32(info.datalen))
 		}
 	}()
-
 	return sinsp.ScapSuccess
 }
 

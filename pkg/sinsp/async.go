@@ -4,10 +4,8 @@ package sinsp
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdio.h>
 
-
-typedef void (*pfnWait)(void *waitCtx);
+typedef bool (*pfnWait)(void *waitCtx);
 
 typedef struct async_extractor_info
 {
@@ -22,14 +20,14 @@ typedef struct async_extractor_info
 	void *waitCtx;
 } async_extractor_info;
 
-void wait_bridge(async_extractor_info *info)
+bool wait_bridge(async_extractor_info *info)
 {
-   info->wait(info->waitCtx);
+   return info->wait(info->waitCtx);
 };
 */
 import "C"
 import "unsafe"
 
-func Wait(info unsafe.Pointer) {
-	C.wait_bridge((*C.async_extractor_info)(info))
+func Wait(info unsafe.Pointer) bool {
+	return bool(C.wait_bridge((*C.async_extractor_info)(info)))
 }
