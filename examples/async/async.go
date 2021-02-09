@@ -26,7 +26,7 @@ import (
 	"log"
 	"unsafe"
 
-	"github.com/leogr/libsinsp-plugin-sdk-go/pkg/sinsp"
+	"github.com/ldegio/libsinsp-plugin-sdk-go/pkg/sinsp"
 )
 
 // Plugin consts
