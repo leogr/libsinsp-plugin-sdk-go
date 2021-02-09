@@ -41,7 +41,7 @@ func MakeBuffer(p unsafe.Pointer, s uint32) {
 	}
 
 	if s > 0 {
-		state.buf = (*C.uint8_t)(C.malloc(C.ulong(s)))
+		state.buf = (*C.uint8_t)(C.malloc(C.size_t(s)))
 	}
 
 	state.bufLen = C.uint32_t(s)
