@@ -5,7 +5,7 @@ package sinsp
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef bool (*pfnWait)(void *waitCtx);
+typedef bool (*cb_wait_t)(void* wait_ctx);
 
 typedef struct async_extractor_info
 {
@@ -16,13 +16,13 @@ typedef struct async_extractor_info
 	uint32_t datalen;
 	uint32_t field_present;
 	char* res;
-	pfnWait wait;
-	void *waitCtx;
+	cb_wait_t cb_wait;
+	void* wait_ctx;
 } async_extractor_info;
 
 bool wait_bridge(async_extractor_info *info)
 {
-   return info->wait(info->waitCtx);
+   return info->cb_wait(info->wait_ctx);
 };
 */
 import "C"
