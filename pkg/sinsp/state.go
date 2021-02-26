@@ -11,7 +11,9 @@ typedef struct {
 } state;
 */
 import "C"
-import "unsafe"
+import (
+	"unsafe"
+)
 
 // NewStateContainer returns an opaque pointer to a memory container that
 // may be safely passed back and forth to sinsp.
@@ -55,6 +57,12 @@ func MakeBuffer(p unsafe.Pointer, s uint32) {
 func CopyToBuffer(p unsafe.Pointer, b []byte) uint32 {
 	state := (*C.state)(p)
 	return uint32(copy((*[1 << 30]byte)(unsafe.Pointer(state.buf))[:int(state.bufLen):int(state.bufLen)][:], b))
+}
+
+//
+func CopyToBufferAt(p unsafe.Pointer, b []byte, pos uint32) uint32 {
+	state := (*C.state)(p)
+	return uint32(copy((*[1 << 30]byte)(unsafe.Pointer(state.buf))[:int(state.bufLen):int(state.bufLen)][pos:], b))
 }
 
 // Buffer returns a pointer to the first element of the C buffer belonging to p, if any,
