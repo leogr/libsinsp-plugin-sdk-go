@@ -19,3 +19,6 @@ const (
 	TypeSourcePlugin    uint32 = 1
 	TypeExtractorPlugin uint32 = 2
 )
+
+const MaxEvtSize uint32 = 65635
+const MaxNextBufSize uint32 = 4 * 1024 * 1024
