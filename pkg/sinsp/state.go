@@ -8,6 +8,7 @@ typedef struct {
    uint8_t* buf;
    uint32_t bufLen;
    void* goMem;
+   void* batchCtx;
 } state;
 */
 import "C"
@@ -27,6 +28,7 @@ func NewStateContainer() unsafe.Pointer {
 	pCtx := (*C.state)(C.malloc(C.sizeof_state))
 	pCtx.bufLen = 0
 	pCtx.goMem = nil
+	pCtx.batchCtx = nil
 	return unsafe.Pointer(pCtx)
 }
 
@@ -82,11 +84,25 @@ func SetContext(p unsafe.Pointer, ctx unsafe.Pointer) {
 		peristentPtrs.Delete(state.goMem)
 	}
 
+	// implicitly destroy batchCtx when a context is set
+	if state.batchCtx != nil {
+		peristentPtrs.Delete(state.batchCtx)
+	}
+
 	state.goMem = ctx
 
 	if ctx != nil {
 		peristentPtrs.Store(ctx, ctx)
+		// implicitly create a new batchCtx when a non-empty context is set
+		state.batchCtx = unsafe.Pointer(&batchContext{})
+		peristentPtrs.Store(state.batchCtx, state.batchCtx)
 	}
+}
+
+func getBatchCtx(p unsafe.Pointer) *batchContext {
+	state := (*C.state)(p)
+	// we assume batchCtx was made by SetContext()
+	return (*batchContext)(state.batchCtx)
 }
 
 // Context returns a pointer to Go allocated memory, if any, previously assigned into p with SetContext(),
