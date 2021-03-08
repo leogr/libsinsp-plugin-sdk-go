@@ -1,25 +1,5 @@
 package main
 
-/*
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-
-typedef bool (*pfnWait)(void *waitCtx);
-
-typedef struct async_extractor_info
-{
-	uint64_t evtnum;
-	uint32_t id;
-	char* arg;
-	char* data;
-	uint32_t datalen;
-	uint32_t field_present;
-	char* res;
-	pfnWait wait;
-	void *waitCtx;
-} async_extractor_info;
-*/
 import "C"
 import (
 	"encoding/json"
@@ -111,20 +91,15 @@ func plugin_get_fields() *C.char {
 }
 
 //export plugin_extract_str
-func plugin_extract_str(evtnum uint64, id uint32, arg *C.char, data *C.char, datalen uint32) *C.char {
+func plugin_extract_str(pluginState unsafe.Pointer, evtnum uint64, id uint32, arg *byte, data *byte, datalen uint32) *byte {
 	//log.Printf("[%s] plugin_extract_str\n", PluginName)
-	return C.CString("ciao")
+	return (*byte)(unsafe.Pointer(C.CString("ciao")))
 }
 
 //export plugin_register_async_extractor
-func plugin_register_async_extractor(info *C.async_extractor_info) int32 {
+func plugin_register_async_extractor(pluginState unsafe.Pointer, asyncExtractorInfo unsafe.Pointer) int32 {
 	log.Printf("[%s] plugin_register_async_extractor\n", PluginName)
-	go func() {
-		for sinsp.Wait(unsafe.Pointer(info)) {
-			(*info).res = plugin_extract_str(uint64(info.evtnum), uint32(info.id), info.arg, info.data, uint32(info.datalen))
-		}
-	}()
-	return sinsp.ScapSuccess
+	return sinsp.RegisterAsyncExtractors(pluginState, asyncExtractorInfo, plugin_extract_str)
 }
 
 func main() {}
