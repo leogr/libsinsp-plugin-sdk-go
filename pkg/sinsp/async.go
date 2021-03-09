@@ -16,21 +16,26 @@ typedef struct async_extractor_info
 	char* data;
 	uint32_t datalen;
 	uint32_t field_present;
-	char* res;
+	char* res_str;
+	uint64_t res_u64;
 	int32_t rc;
 	cb_wait_t cb_wait;
 	void* wait_ctx;
 } async_extractor_info;
 
+#include <unistd.h>
+
 bool wait_bridge(async_extractor_info *info)
 {
-   return info->cb_wait(info->wait_ctx);
+	return info->cb_wait(info->wait_ctx);
 };
 */
 import "C"
-import "unsafe"
+import (
+	"unsafe"
+)
 
-// RegisterAsyncExtractors is an helper function to be used within plugin_register_async_extractor.
+// RegisterAsyncExtractors is a helper function to be used within plugin_register_async_extractor.
 //
 // Intended usage as in the following example:
 //
@@ -48,15 +53,16 @@ func RegisterAsyncExtractors(
 	pluginState unsafe.Pointer,
 	asyncExtractorInfo unsafe.Pointer,
 	strExtractorFunc PluginExtractStrFunc,
+	u64ExtractorFunc PluginExtractU64Func,
 ) int32 {
 	go func() {
 		info := (*C.async_extractor_info)(asyncExtractorInfo)
-		(*info).rc = C.int32_t(ScapSuccess)
 		for C.wait_bridge(info) {
+			(*info).rc = C.int32_t(ScapSuccess)
 			switch uint32(info.ftype) {
 			case ParamTypeCharBuf:
 				if strExtractorFunc != nil {
-					(*info).res = (*C.char)(unsafe.Pointer(strExtractorFunc(
+					(*info).res_str = (*C.char)(unsafe.Pointer(strExtractorFunc(
 						pluginState,
 						uint64(info.evtnum),
 						uint32(info.id),
@@ -67,7 +73,23 @@ func RegisterAsyncExtractors(
 				} else {
 					(*info).rc = C.int32_t(ScapNotSupported)
 				}
+			case ParamTypeUint64:
+				if u64ExtractorFunc != nil {
+					var field_present uint32
+					(*info).res_u64 = C.uint64_t(u64ExtractorFunc(
+						pluginState,
+						uint64(info.evtnum),
+						uint32(info.id),
+						(*byte)(unsafe.Pointer(info.arg)),
+						(*byte)(unsafe.Pointer(info.data)),
+						uint32(info.datalen),
+						&(field_present),
+					))
 
+					info.field_present = C.uint32_t(field_present)
+				} else {
+					(*info).rc = C.int32_t(ScapNotSupported)
+				}
 			default:
 				(*info).rc = C.int32_t(ScapNotSupported)
 			}
