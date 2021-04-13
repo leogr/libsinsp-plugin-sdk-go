@@ -6,5 +6,6 @@ type FieldEntry struct {
 	Type string `json:"type"`
 	ID   uint32 `json: "ID"`
 	Name string `json:"name"`
+	Display string `json:"display"`
 	Desc string `json:"desc"`
 }
