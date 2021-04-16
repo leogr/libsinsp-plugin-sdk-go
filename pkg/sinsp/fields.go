@@ -8,5 +8,5 @@ type FieldEntry struct {
 	Name    string `json:"name"`
 	Display string `json:"display"`
 	Desc    string `json:"desc"`
-	Hidden  bool   `json:"hidden"`
+	Visibility  string   `json:"visibility"`
 }
