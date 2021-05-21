@@ -101,10 +101,14 @@ func plugin_extract_str(pluginState unsafe.Pointer, evtnum uint64, id uint32, ar
 	return (*byte)(unsafe.Pointer(C.CString("ciao")))
 }
 
+//export plugin_extract_u64
+func plugin_extract_u64(plgState unsafe.Pointer, evtnum uint64, id uint32, arg *byte, data *byte, datalen uint32, fieldPresent *uint32) uint64 {
+	return 11
+}
+
 //export plugin_register_async_extractor
 func plugin_register_async_extractor(pluginState unsafe.Pointer, asyncExtractorInfo unsafe.Pointer) int32 {
-	log.Printf("[%s] plugin_register_async_extractor\n", PluginName)
-	return sinsp.RegisterAsyncExtractors(pluginState, asyncExtractorInfo, plugin_extract_str)
+	return sinsp.RegisterAsyncExtractors(pluginState, asyncExtractorInfo, plugin_extract_str, plugin_extract_u64)
 }
 
 func main() {}
