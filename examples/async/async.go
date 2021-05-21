@@ -74,6 +74,11 @@ func plugin_get_description() *C.char {
 	return C.CString(PluginDescription)
 }
 
+// export plugin_get_required_api_version
+func plugin_get_required_api_version() *C.char {
+	return C.CString("1.0.0")
+}
+
 //export plugin_get_fields
 func plugin_get_fields() *C.char {
 	log.Printf("[%s] plugin_get_fields\n", PluginName)
